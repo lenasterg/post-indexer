@@ -98,7 +98,7 @@ The Processor Information module that comes packaged with Post Indexer will ensu
 
 ## Usage
 
-For help with installing plugins please refer to our [Plugin installation guide.](https://premium.wpmudev.org/wpmu-manual/installing-regular-plugins-on-wpmu/)
+For help with installing plugins please refer to our [Plugin installation guide.](https://wpmudev.com/docs/using-wordpress/installing-wordpress-plugins/)
 
 ### To Use:
 
