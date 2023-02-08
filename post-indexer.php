@@ -33,7 +33,7 @@ Domain Path: /languages
 // +----------------------------------------------------------------------+
 
 define( 'POST_INDEXER_PLUGIN_DIR', plugin_dir_path( __FILE__) );
-if (is_admin()){
+
 require_once POST_INDEXER_PLUGIN_DIR . 'includes/config.php';
 require_once POST_INDEXER_PLUGIN_DIR . 'includes/functions.php';
 
@@ -42,7 +42,7 @@ require_once POST_INDEXER_PLUGIN_DIR . 'classes/class.model.php';
 
 // Include the network query class for other plugins to use
 require_once POST_INDEXER_PLUGIN_DIR . 'classes/networkquery.php';
-
+if (is_admin()){
 // Include the rebuild cron class
 require_once POST_INDEXER_PLUGIN_DIR . 'classes/cron.postindexerrebuild.php';
 
