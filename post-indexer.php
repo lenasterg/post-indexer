@@ -42,10 +42,10 @@ require_once POST_INDEXER_PLUGIN_DIR . 'classes/class.model.php';
 
 // Include the network query class for other plugins to use
 require_once POST_INDEXER_PLUGIN_DIR . 'classes/networkquery.php';
-if (is_admin()){
+
 // Include the rebuild cron class
 require_once POST_INDEXER_PLUGIN_DIR . 'classes/cron.postindexerrebuild.php';
-
+if (is_admin()){
 // Include the main class
 require_once POST_INDEXER_PLUGIN_DIR . 'classes/class.postindexeradmin.php';
 }
