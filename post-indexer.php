@@ -45,6 +45,7 @@ require_once POST_INDEXER_PLUGIN_DIR . 'classes/networkquery.php';
 
 // Include the rebuild cron class
 require_once POST_INDEXER_PLUGIN_DIR . 'classes/cron.postindexerrebuild.php';
-
+if (is_admin()){
 // Include the main class
 require_once POST_INDEXER_PLUGIN_DIR . 'classes/class.postindexeradmin.php';
+}

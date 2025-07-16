@@ -27,15 +27,6 @@ if ( ! class_exists( 'postindexeradmin' ) ) {
 			$this->base_url = plugins_url( '/', dirname( __FILE__ ) );
 
 
-			// Include WPMUDev Dashboar notifications class if need be
-			global $wpmudev_notices;
-			$wpmudev_notices[] = array(
-				'id'      => 30,
-				'name'    => 'Post Indexer',
-				'screens' => array( 'settings_page_postindexer-network' )
-			);
-			include_once( dirname( __FILE__ ) . '/../extra/wpmudev-dash-notification.php' );
-
 			// Add settings menu action
 			add_action( 'network_admin_menu', array( $this, 'add_admin_page' ) );
 
