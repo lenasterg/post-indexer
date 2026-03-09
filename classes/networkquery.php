@@ -1931,7 +1931,7 @@ class Network_Query {
 	 *
 	 * @return array List of posts.
 	 */
-	function &get_posts() {
+function &get_posts() {
 		global $wpdb, $user_ID, $_wp_using_ext_object_cache;
 
 		$this->parse_query();
@@ -2619,45 +2619,7 @@ class Network_Query {
 			$limits = 'LIMIT ' . $pgstrt . $q['posts_per_page'];
 		}
 
-		// Comments feeds
-		/*
-		if ( $this->is_comment_feed && ( $this->is_archive || $this->is_search || !$this->is_singular ) ) {
-			if ( $this->is_archive || $this->is_search ) {
-				$cjoin = "JOIN $this->posts ON ($this->comments.comment_post_ID = $this->posts.ID) $join ";
-				$cwhere = "WHERE comment_approved = '1' $where";
-				$cgroupby = "$wpdb->comments.comment_id";
-			} else { // Other non singular e.g. front
-				$cjoin = "JOIN $wpdb->posts ON ( $wpdb->comments.comment_post_ID = $wpdb->posts.ID )";
-				$cwhere = "WHERE post_status = 'publish' AND comment_approved = '1'";
-				$cgroupby = '';
-			}
-
-			if ( !$q['suppress_filters'] ) {
-				$cjoin = apply_filters_ref_array('comment_feed_join', array( $cjoin, &$this ) );
-				$cwhere = apply_filters_ref_array('comment_feed_where', array( $cwhere, &$this ) );
-				$cgroupby = apply_filters_ref_array('comment_feed_groupby', array( $cgroupby, &$this ) );
-				$corderby = apply_filters_ref_array('comment_feed_orderby', array( 'comment_date_gmt DESC', &$this ) );
-				$climits = apply_filters_ref_array('comment_feed_limits', array( 'LIMIT ' . get_option('posts_per_rss'), &$this ) );
-			}
-			$cgroupby = ( ! empty( $cgroupby ) ) ? 'GROUP BY ' . $cgroupby : '';
-			$corderby = ( ! empty( $corderby ) ) ? 'ORDER BY ' . $corderby : '';
-
-			$this->comments = (array) $wpdb->get_results("SELECT $distinct $wpdb->comments.* FROM $wpdb->comments $cjoin $cwhere $cgroupby $corderby $climits");
-			$this->comment_count = count($this->comments);
-
-			$post_ids = array();
-
-			foreach ( $this->comments as $comment )
-				$post_ids[] = (int) $comment->comment_post_ID;
-
-			$post_ids = join(',', $post_ids);
-			$join = '';
-			if ( $post_ids )
-				$where = "AND $wpdb->posts.ID IN ($post_ids) ";
-			else
-				$where = "AND 0";
-		}
-		*/
+		
 
 		$pieces = array( 'where', 'groupby', 'join', 'orderby', 'distinct', 'fields', 'limits' );
 
@@ -2697,17 +2659,17 @@ class Network_Query {
 				$$piece = isset( $clauses[ $piece ] ) ? $clauses[ $piece ] : '';
 		}
 
-		if ( ! empty($groupby) )
+		if ( ! empty($groupby) ) {
 			$groupby = 'GROUP BY ' . $groupby;
-		if ( !empty( $orderby ) )
+		}
+		if ( !empty( $orderby ) ) {
 			$orderby = 'ORDER BY ' . $orderby;
+		}
 
-		$found_rows = '';
-		if ( !$q['no_found_rows'] && !empty($limits) )
-			$found_rows = 'SQL_CALC_FOUND_ROWS';
+		$found_rows = ''; 
 
 		$this->request = $old_request = "SELECT $found_rows $distinct $fields FROM $this->network_posts $join WHERE 1=1 $where $groupby $orderby $limits";
-		//echo $this->request;
+				
 		if ( !$q['suppress_filters'] ) {
 			$this->request = apply_filters_ref_array( 'network_posts_request', array( $this->request, &$this ) );
 		}
@@ -2741,19 +2703,42 @@ class Network_Query {
 			$ids = $wpdb->get_results( $this->request );
 
 			if ( $ids ) {
-				$this->set_found_posts( $q, $limits );
-                                $this->posts = array();
+				if ( !$q['no_found_rows'] && !empty($limits) ) {
+					$cache_key = 'net_posts_cnt_' . md5( $where . $join );
+					$found_posts = wp_cache_get( $cache_key, 'network_queries' );
+
+					if ( false === $found_posts ) {
+						$count_sql = "SELECT COUNT(1) FROM $this->network_posts $join WHERE 1=1 $where";
+						$found_posts = $wpdb->get_var( $count_sql );
+						wp_cache_set( $cache_key, $found_posts, 'network_queries', 300 );
+					}
+
+					$this->found_posts = $found_posts;
+					$this->max_num_pages = ceil( $this->found_posts / $q['posts_per_page'] );
+				}
+
+				$this->posts = array();
 				foreach($ids as $id) {
 					$this->posts[] = network_get_post( $id->BLOG_ID, $id->ID );
 				}
-
 			} else {
 				$this->found_posts = $this->max_num_pages = 0;
 				$this->posts = array();
 			}
 		} else {
 			$this->posts = $wpdb->get_results( $this->request );
-			$this->set_found_posts( $q, $limits );
+    		if ( !$q['no_found_rows'] && !empty($limits) ) {
+				$cache_key = 'net_posts_cnt_' . md5( $where . $join );
+				$found_posts = wp_cache_get( $cache_key, 'network_queries' );
+
+				if ( false === $found_posts ) {
+					$count_sql = "SELECT COUNT(1) FROM $this->network_posts $join WHERE 1=1 $where";
+					$found_posts = $wpdb->get_var( $count_sql );
+					wp_cache_set( $cache_key, $found_posts, 'network_queries', 300 );
+				}
+				$this->found_posts = $found_posts;
+				$this->max_num_pages = ceil( $this->found_posts / $q['posts_per_page'] );
+			}
 		}
 
 
@@ -2761,20 +2746,7 @@ class Network_Query {
 		if ( !$q['suppress_filters'] )
 			$this->posts = apply_filters_ref_array('network_posts_results', array( $this->posts, &$this ) );
 
-		/*
-		if ( !empty($this->posts) && $this->is_comment_feed && $this->is_singular ) {
-			$cjoin = apply_filters_ref_array('comment_feed_join', array( '', &$this ) );
-			$cwhere = apply_filters_ref_array('comment_feed_where', array( "WHERE comment_post_ID = '{$this->posts[0]->ID}' AND comment_approved = '1'", &$this ) );
-			$cgroupby = apply_filters_ref_array('comment_feed_groupby', array( '', &$this ) );
-			$cgroupby = ( ! empty( $cgroupby ) ) ? 'GROUP BY ' . $cgroupby : '';
-			$corderby = apply_filters_ref_array('comment_feed_orderby', array( 'comment_date_gmt DESC', &$this ) );
-			$corderby = ( ! empty( $corderby ) ) ? 'ORDER BY ' . $corderby : '';
-			$climits = apply_filters_ref_array('comment_feed_limits', array( 'LIMIT ' . get_option('posts_per_rss'), &$this ) );
-			$comments_request = "SELECT $wpdb->comments.* FROM $wpdb->comments $cjoin $cwhere $cgroupby $corderby $climits";
-			$this->comments = $wpdb->get_results($comments_request);
-			$this->comment_count = count($this->comments);
-		}
-		*/
+	
 
 		if ( !$q['suppress_filters'] )
 			$this->posts = apply_filters_ref_array('network_the_posts', array( $this->posts, &$this ) );
