@@ -1667,7 +1667,7 @@ if ( ! class_exists( 'postindexeradmin' ) ) {
 		  `term_count_updated` datetime NOT NULL default '0000-00-00 00:00:00',
 		  `term_count` bigint(20),
 		  PRIMARY KEY  (`term_count_id`)
-		) ENGINE=MyISAM  DEFAULT CHARSET=utf8;";
+		) ENGINE=InnoDB  DEFAULT CHARSET=utf8;";
 
 				$post_indexer_table3 = "CREATE TABLE IF NOT EXISTS `{$wpdb->base_prefix}site_terms` (
 			                `term_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
